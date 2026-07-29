@@ -1,0 +1,74 @@
+%%
+% @theory: teste
+% @author: thiago
+% @date: Wed, 24 Jun 2026 18:10:20 GMT
+%%
+teste: THEORY
+  BEGIN 
+
+  Id : TYPE
+  Val : TYPE+
+
+  Mem : TYPE = list[list[[Id , Val]]]
+
+  NullV : Val
+
+  IMPORTING structures@Maybe[Val]
+
+  myLookup(x : Id)(l : list[[Id,Val]]) : RECURSIVE Maybe[Val] =
+  CASES l OF
+    null : None,
+    cons(h,t): IF x = h`1 THEN Some(h`2)
+               ELSE myLookup(x)(t)
+               ENDIF
+  ENDCASES
+  MEASURE length(l)
+
+  lkup(l : Mem)(x : Id) : RECURSIVE Val =
+  CASES l OF
+    null : NullV,
+    cons(h,t) : CASES myLookup(x)(h) OF
+                    None : lkup(t)(x),
+                    Some(v) : v
+                ENDCASES
+  ENDCASES
+  MEASURE length(l)
+
+  elem(x : Id)(l : list[Id]) : RECURSIVE boolean =
+  CASES l OF
+      null : FALSE,
+      cons(id,ids) : IF x = id THEN TRUE
+                     ELSE elem(x)(ids)
+                     ENDIF
+  ENDCASES
+  MEASURE length(l)
+
+  upd2 (p : [Id,Val])(f : list[[Id,Val]])(g : Mem) : RECURSIVE Mem =
+  CASES g OF
+        null : (: cons(p,f) :),
+        cons(h,t) : IF elem(p`1)(map(LAMBDA(x : Id, y : Val): x)(f)) THEN
+                    cons(cons(p,f),g)
+                    ELSE cons(f, upd2(p)(h)(t))
+                    ENDIF
+  ENDCASES
+  MEASURE length(g)
+
+  upd(p : [Id,Val])(f : Mem) : Mem =
+  CASES f OF
+      null : (: :),
+      cons(h,t) : upd2(p)(h)(t)
+  ENDCASES
+
+
+  % @QED lkup_upd2 proved by thiago on Wed, 01 Jul 2026 17:55:53 GMT
+  lkup_upd2 : LEMMA
+  FORALL(res, aux : Id, val: Val, t : Mem):
+  res /= aux AND NOT null?(t) => lkup(upd2(aux,val)(car(t))(cdr(t)))(res) = lkup(t)(res)
+
+  lkup_upd1 : CONJECTURE
+  FORALL(res, aux : Id):
+  FORALL(val: Val):
+  FORALL(m1 : Mem):
+  res /= aux => lkup(upd(aux,val)(m1))(res) = lkup(m1)(res)
+
+  END teste
