@@ -1,13 +1,15 @@
 open import TMtoIMP
 open import IMP
 open import Data.Bool renaming (_≟_ to _==B_)
-open import Data.List
+open import Data.List renaming (reverse to rev)
 open import Data.Product renaming (Σ to Σp)
 open import TMmultipleTape
 open import Relation.Binary.PropositionalEquality renaming ([_] to ![_]!)
 open import Data.Nat renaming (_≟_ to _==N_)
 open import Data.Fin renaming (_≟_ to _==F_)
-open import Data.Vec renaming ([_] to ?[_]? ; _++_ to _++v_ ; tail to tailV)
+open import Data.Vec using (Vec; []; _∷_; foldl; reverse) renaming ([_] to ?[_]? ; _++_ to _++v_ ; tail to tailV)
+
+
 open import Data.Maybe renaming (map to mapM ; zip to zipM )
 
 open import Data.String using (String; _≟_)
@@ -55,6 +57,10 @@ VecTapes2Exp  (t ∷ ts) = C "Cons" ((Tape2Exp t) ∷ [ VecTapes2Exp  ts ])
 semi2Val : {n : ℕ} → List (Σ n) → Val
 semi2Val [] = K "Nil" []
 semi2Val (s ∷ ss) = K "Cons" ((Fin2Val s) ∷ [ semi2Val ss ])
+
+VecSym2Val : {n o : ℕ} → Vec (Σ n) o → Val
+VecSym2Val [] = K "Nil" []
+VecSym2Val (s ∷ ss) = K "Cons" ((Fin2Val s) ∷ [ VecSym2Val ss ])
 
 
 Tape2Val : {n : ℕ} → Tape (Σ n) → Val
@@ -155,6 +161,7 @@ sum-code-inv : (r a : ℕ) →
                (ℕ2Val a) ≡ (lkup m1 "x1") →
                (m1 , (sum-code-Body res)) ▸* (m2 , []) →
                (ℕ2Val (suc r)) ≡ (lkup m2 res)
+               
 sum-code-inv r a res m1 m2 neq r-res sa-aux a-x1
              (trans-▸ st1 st2 st3 (asg-I)
                (trans-▸ st4 st5 st6 (asg-I)
@@ -175,6 +182,24 @@ res
 
 
 
+-- The code inputs the codified tapes and returns the reversed list of heads.
+heads:=Π-tapes-revHeads : (m1 m2 : Mem) →
+                        (n o : ℕ) →
+                        (tapes : Vec (Tape (Σ n)) o) → 
+                         VecTapes2Val tapes ≡ lkup m1 "tapes" →
+                        (m1 , heads:=Π-tapes) ▸* (m2 , []) →
+                        VecSym2Val (reverse (Heads n o tapes)) ≡ lkup m2 "heads"
+heads:=Π-tapes-revHeads = {!!}
+
+rev-heads : (m1 m2 : Mem) →
+            (n o : ℕ) →
+            (rev-head : Vec (Σ n) o) →
+            VecSym2Val rev-head ≡ lkup m1 "heads" →
+            (m1 , heads:=Π-tapes) ▸* (m2 , []) →
+            (VecSym2Val (reverse rev-head) ≡ lkup m1 "heads")
+
+rev-heads = {!!}
+
 --Body performs one step of the Turing Machine
 BODY-is-1stepST : (m1  m2 : Mem) →
                 (tm : TM) →
@@ -184,5 +209,17 @@ BODY-is-1stepST : (m1  m2 : Mem) →
                  (eval m1 (δ2Table (TM.trans tm))) ≡ (lkup m1 "table") → 
                 (m1 , BODY) ▸* (m2 , []) →
                 (Fin2Val (proj₁ (1-step tm c))) ≡ (lkup m2 "q")
+
+
+--TM2IMP
+
+{- TODO : After proving the last theorem, finish to specify it.
+  TM2IMP-is-stepST* : (m1 m2 : Mem) →
+                  ()
+                  (c1 c2 : Config tm) →
+                  (m1 , TM2IMP) ▸* (m2 , []) →
+                  
+-}
+
 BODY-is-1stepST = {!!}
 

@@ -188,11 +188,11 @@ vec2number2 k = ( "number" := Z ) ∷
                                [ "vec" := V "t" ] ) ) ] ]
 
 
-vec2number : Id → Prog
-vec2number k = ( "number" := Z ) ∷
-                [ while "vec" is
+heads2number : Id → Prog
+heads2number k = ( "number" := Z ) ∷
+                [ while "heads" is
                         [("Cons" , ( ("x" ∷ [ "xs" ]) ,
-                                     (("vec" := V "xs") ∷
+                                     (("heads" := V "xs") ∷
                                        (mult-code "res" "number" k) ++
                                        (sum-code "number" "x" "res")
                                      ) ))] ]
@@ -391,7 +391,7 @@ TM2IMP n-st n-sym tapes δ =
                  [( "S" , ([ "x" ] ,
                         heads:=Π-tapes ++
                         REV-heads ++
-                        (vec2number "n-sym") ++
+                        (heads2number "n-sym") ++
                         ( mult-code "i" "number" "n-st") ++
                         ( sum-code "i"  "i" "q") ++
                         LOOKUP ++
